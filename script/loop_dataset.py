@@ -2,6 +2,8 @@
 Loop through whole dataset, optionally optimize model and return loss
 """
 
+import torch
+
 
 def _loop_dataset(model,
                   dataloader,
@@ -18,13 +20,16 @@ def _loop_dataset(model,
         model.train()
 
     cur_loss = 0
-    for batch_idx, (image, label) in enumerate(dataloader):
-        image = image.to(device)
-        label = label.to(device)
+    for batch_idx, data in enumerate(dataloader):
+        # feed forward with single image and accumulate gradients
+        for image, label in data:
+            # expect a single image (C, H, W) and integer label
+            image = image.to(device).unsqueeze(0)
+            label = torch.LongTensor([label]).to(device)
 
-        # forward
-        output = model(image)
-        loss = criterion(output, label)
+            # forward
+            output = model(image)
+            loss = criterion(output, label)
 
         # backward
         if optimizer is not None:

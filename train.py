@@ -36,12 +36,15 @@ def main():
     dataset_val = Subset(dataset_val, np.arange(10))
     ###
 
+    identity_collate = lambda batch: batch
     train_loader = DataLoader(dataset_train,
                               BATCH_SIZE,
-                              shuffle=False)
+                              shuffle=False,
+                              collate_fn=identity_collate)
     val_loader = DataLoader(dataset_val,
                             BATCH_SIZE,
-                            shuffle=False)
+                            shuffle=False,
+                            collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
     model = MobileNetV2(4).to(DEVICE)
