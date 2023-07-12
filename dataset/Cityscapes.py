@@ -13,10 +13,9 @@ from PIL import Image
 
 
 class CityscapesDataset(data.Dataset):
-    HEIGHT, WIDTH = 1024, 2048
+    CHANNELS, HEIGHT, WIDTH = 3, 1024, 2048
     IMAGENET_MEAN = np.array((0.485, 0.456, 0.406))
     IMAGENET_STD = np.array((0.229, 0.224, 0.225))
-    INPUT_CHANNELS = 3
 
     def __init__(self, root: str | Path, split: str = "train", scale=1):
         super().__init__()
@@ -31,8 +30,7 @@ class CityscapesDataset(data.Dataset):
 
         if split not in {"train", "val", "test"}:
             raise ValueError(
-                f"Expect split to be 'train', 'val' or 'test', got {split}"
-            )
+                f"Expect split to be 'train', 'val' or 'test', got {split}")
         self.image_dir = self.root_dir / "leftImg8bit" / split
 
         # get paths to all image files needed
@@ -46,17 +44,15 @@ class CityscapesDataset(data.Dataset):
         # the size is scaled to match the longest side (width)
         self.scale = scale
         self.size = (int(self.WIDTH * scale), int(self.WIDTH * scale))
-        self.transform_image = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Resize(self.size, antialias=None),
-                transforms.Normalize(
-                    mean=self.IMAGENET_MEAN,
-                    std=self.IMAGENET_STD,
-                    inplace=True,
-                ),
-            ]
-        )
+        self.transform_image = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(self.size, antialias=None),
+            transforms.Normalize(
+                mean=self.IMAGENET_MEAN,
+                std=self.IMAGENET_STD,
+                inplace=True,
+            ),
+        ])
 
     def __getitem__(self, index):
         image_file, label = self.samples[index]
@@ -74,18 +70,22 @@ class CityscapesDataset(data.Dataset):
         return len(self.samples)
 
     @classmethod
-    def plot_image(cls, image: torch.Tensor, save_to="image.png"):
-        # plot input training image
+    def plot_image(cls,
+                   image: torch.Tensor,
+                   num_rotation=0,
+                   save_to="image.png"):
+        # plot image with rotation
+
+        # rotate image
+        image = torch.rot90(image, k=num_rotation, dims=[-2, -1])
 
         # reverse the normalization used in training
         inverse_mean = -cls.IMAGENET_MEAN / cls.IMAGENET_STD
         inverse_std = 1 / cls.IMAGENET_STD
-        transform = transforms.Compose(
-            [
-                transforms.Normalize(mean=inverse_mean, std=inverse_std),
-                transforms.ToPILImage(),
-            ]
-        )
+        transform = transforms.Compose([
+            transforms.Normalize(mean=inverse_mean, std=inverse_std),
+            transforms.ToPILImage(),
+        ])
         image = transform(image)
         image.save(save_to)
 
