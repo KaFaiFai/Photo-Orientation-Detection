@@ -43,7 +43,7 @@ class CityscapesDataset(data.Dataset):
         # transform for train images and labels/instance
         # the size is scaled to match the longest side (width)
         self.scale = scale
-        self.size = (int(self.WIDTH * scale), int(self.WIDTH * scale))
+        self.size = (int(self.HEIGHT * scale), int(self.WIDTH * scale))
         self.transform_image = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(self.size, antialias=None),

@@ -1,6 +1,9 @@
+"""
+MobileNetV2 with slight modification to support variable input image size
+"""
+
 import torch
 from torch import nn
-from torchvision.models import mobilenet_v2
 
 
 def to_nearest_multiple_of(num, multiple):
@@ -101,21 +104,13 @@ class Bottleneck(nn.Module):
 
 class MobileNetV2(nn.Module):
 
-    def __init__(self, num_class, alpha=1.0, input_resolution=224):
+    def __init__(self, num_class, alpha=1.0):
         super().__init__()
         if alpha <= 0:
             raise ValueError("width multiplier must be positive")
-        if input_resolution < 1:
-            raise ValueError("input resolution must larger than 1")
-        self.num_class, self.alpha, self.input_resolution = (
-            num_class,
-            alpha,
-            input_resolution,
-        )
+        self.num_class, self.alpha = num_class, alpha
         multiple = 8
 
-        input_res = int(input_resolution)
-        final_res = int(input_res / (2**5))
         expansion_factors = [1, 6, 6, 6, 6, 6, 6]
         # somehow alpha doesn't apply to the 2nd and 3rd channel
         num_channels = [
@@ -130,7 +125,6 @@ class MobileNetV2(nn.Module):
 
         # expand number of channels
         self.initial = nn.Sequential(
-            nn.AdaptiveAvgPool2d(input_res),
             nn.Conv2d(3,
                       num_channels[0],
                       kernel_size=3,
@@ -156,11 +150,10 @@ class MobileNetV2(nn.Module):
             PointWiseConv(num_channels[-1], final_channel),
             nn.BatchNorm2d(final_channel),
             nn.ReLU6(),
-            nn.AvgPool2d(final_res),
+            nn.AdaptiveAvgPool2d(1),  # control output size for fc layer
             nn.Flatten(),
             nn.Dropout(p=0.001),
             nn.Linear(final_channel, num_class),
-            # no softmax
         )
 
     def forward(self, x):
@@ -172,16 +165,21 @@ class MobileNetV2(nn.Module):
         return x
 
     def __repr__(self):
-        return f"MobileNetV2({self.num_class}, alpha={self.alpha}, input_resolution={self.input_resolution})"
+        return f"MobileNetV2({self.num_class}, alpha={self.alpha})"
 
 
 def test():
     from torchinfo import summary
 
-    # net = mobilenet_v2(pretrained=True)
     batch_size = 5
-    net = MobileNetV2(1000, input_resolution=123)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    net = MobileNetV2(1000).to(device)
     summary(net, input_size=(batch_size, 3, 523, 523))
+
+    # verify it works for variable input size
+    y = net(torch.randn((batch_size, 3, 523, 523)).to(device))
+    y = net(torch.randn((batch_size, 3, 329, 175)).to(device))
+
     # network_state = net.state_dict()
     # print("PyTorch model's state_dict:")
     # for layer, tensor in network_state.items():

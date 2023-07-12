@@ -7,6 +7,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
+import timeit
 
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
@@ -19,7 +20,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.1
+IMAGE_SCALE = 1
 LOAD_MODEL = False
 DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
 EXP_FOLDER = "exp1"
@@ -58,6 +59,7 @@ def main():
     train_losses = []
     val_losses = []
     for epoch in range(NUM_EPOCHS):
+        start_time = timeit.default_timer()
         print(f"Epoch [{epoch}/{NUM_EPOCHS}]")
 
         cur_train_loss = train_loop(model, train_loader, criterion, DEVICE,
@@ -68,6 +70,8 @@ def main():
         val_losses.append(cur_val_loss)
         print(f"Validation loss: {cur_val_loss:.4f}")
 
+        end_time = timeit.default_timer()
+        print(f"Time: {end_time-start_time:.2f}s")
         # save model
         checkpoint = {
             "state_dict": model.state_dict(),
