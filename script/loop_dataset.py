@@ -4,13 +4,13 @@ Loop through whole dataset, optionally optimize model and return loss
 
 import torch
 
-
 def _loop_dataset(model,
                   dataloader,
                   criterion,
                   device,
                   optimizer=None,
                   silent=False,
+                  return_samples=True,
                   image_same_size=False):
     """
     used for training loop by setting optimizer or evaluation loop
@@ -21,6 +21,7 @@ def _loop_dataset(model,
         model.train()
 
     cur_loss = 0
+    samples = ([], [], [])
     for batch_idx, data in enumerate(dataloader):
         if image_same_size:
             # feed forward with multiple images of same size
@@ -31,15 +32,25 @@ def _loop_dataset(model,
 
             output = model(image)
             loss = criterion(output, label)
+
+            # save a few samples
+            if return_samples and batch_idx == 0:
+                samples = (image, label, output)
         else:
             # feed forward with single image and accumulate gradients
             for image, label in data:
                 # expect a single image (C, H, W) and integer label
-                image = image.to(device).unsqueeze(0)
+                image = image.to(device)
                 label = torch.LongTensor([label]).to(device)
 
-                output = model(image)
+                output = model(image.unsqueeze(0))
                 loss = criterion(output, label)
+
+                # save a few samples
+                if return_samples and batch_idx == 0:
+                    samples[0].append(image)
+                    samples[1].append(label)
+                    samples[2].append(output)
 
         # backward
         if optimizer is not None:
@@ -48,10 +59,13 @@ def _loop_dataset(model,
             optimizer.step()
 
         cur_loss += loss.item()
-        if batch_idx % 10 == 0 and not silent:
+        if batch_idx % 50 == 0 and not silent:
             print(f"[Batch {batch_idx:4d}/{len(dataloader)}]"
                   f" Loss: {loss.item():.4f}")
     cur_loss /= len(dataloader)
+
+    if return_samples:
+        return cur_loss, samples
     return cur_loss
 
 

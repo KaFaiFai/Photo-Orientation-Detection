@@ -23,7 +23,7 @@ NUM_WORKERS = 2
 IMAGE_SCALE = 0.25
 LOAD_MODEL = False
 DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
-EXP_FOLDER = "exp2"
+EXP_FOLDER = "exp3"
 
 
 def main():
@@ -33,8 +33,8 @@ def main():
                                       scale=IMAGE_SCALE)
     dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(200))
-    dataset_val = Subset(dataset_val, np.arange(50))
+    dataset_train = Subset(dataset_train, np.arange(10))
+    dataset_val = Subset(dataset_val, np.arange(5))
     ###
 
     identity_collate = lambda batch: batch
@@ -54,20 +54,20 @@ def main():
     # if LOAD_MODEL:
     #     load_checkpoint(torch.load("my_checkpoint.pth.tar"), model)
 
-    # check_accuracy(val_loader, model, device=DEVICE)
-
     train_losses = []
     val_losses = []
     for epoch in range(NUM_EPOCHS):
         start_time = timeit.default_timer()
         print(f"Epoch [{epoch}/{NUM_EPOCHS}]")
 
-        cur_train_loss = train_loop(model, train_loader, criterion, DEVICE,
-                                    optimizer)
+        cur_train_loss, train_samples = train_loop(model, train_loader,
+                                                   criterion, DEVICE,
+                                                   optimizer)
         train_losses.append(cur_train_loss)
         end_time = timeit.default_timer()
 
-        cur_val_loss = eval_loop(model, val_loader, criterion, DEVICE)
+        cur_val_loss, val_samples = eval_loop(model, val_loader, criterion,
+                                              DEVICE)
         val_losses.append(cur_val_loss)
         print(f"Validation loss: {cur_val_loss:.4f}")
 
@@ -89,14 +89,8 @@ def main():
         if epoch % 5 == 0:
             print("save snapshot")
 
-            images, predictions = [], []
-            for i in range(5):
-                image, _ = dataset_val[3 + i * 7]
-                image = image.to(DEVICE)
-                output = model(image.unsqueeze(0)).squeeze().to("cpu")
-                prediction = torch.argmax(output).item()
-                images.append(image)
-                predictions.append(prediction)
+            images, _, outputs = val_samples
+            predictions = [torch.argmax(output).item() for output in outputs]
             folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             folder.mkdir(parents=True, exist_ok=True)
             CityscapesDataset.plot_results(images,
