@@ -3,6 +3,8 @@ Loop through whole dataset, optionally optimize model and return loss
 """
 
 import torch
+import timeit
+
 
 def _loop_dataset(model,
                   dataloader,
@@ -15,6 +17,8 @@ def _loop_dataset(model,
     """
     used for training loop by setting optimizer or evaluation loop
     """
+    start_time = timeit.default_timer()
+
     if optimizer is None:
         model.eval()
     else:
@@ -64,9 +68,12 @@ def _loop_dataset(model,
                   f" Loss: {loss.item():.4f}")
     cur_loss /= len(dataloader)
 
+    end_time = timeit.default_timer()
+    time_spent = end_time - start_time
+
     if return_samples:
-        return cur_loss, samples
-    return cur_loss
+        return cur_loss, time_spent, samples
+    return cur_loss, time_spent
 
 
 def train_loop(model, dataloader, criterion, device, optimizer):

@@ -57,23 +57,20 @@ def main():
     train_losses = []
     val_losses = []
     for epoch in range(NUM_EPOCHS):
-        start_time = timeit.default_timer()
         print(f"Epoch [{epoch}/{NUM_EPOCHS}]")
 
-        cur_train_loss, train_samples = train_loop(model, train_loader,
-                                                   criterion, DEVICE,
-                                                   optimizer)
-        train_losses.append(cur_train_loss)
-        end_time = timeit.default_timer()
+        train_info = train_loop(model, train_loader, criterion, DEVICE,
+                                optimizer)
+        train_loss, train_time, train_samples = train_info
+        train_losses.append(train_loss)
 
-        cur_val_loss, val_samples = eval_loop(model, val_loader, criterion,
-                                              DEVICE)
-        val_losses.append(cur_val_loss)
-        print(f"Validation loss: {cur_val_loss:.4f}")
+        val_info = eval_loop(model, val_loader, criterion, DEVICE)
+        val_loss, val_time, val_samples = val_info
+        val_losses.append(val_loss)
+        print(f"Validation loss: {val_loss:.4f}")
 
-        epoch_time = end_time - start_time
-        print(f"Time: {epoch_time:.2f}s,"
-              f" {epoch_time/len(train_loader):.2f}s/batch")
+        print(f"Train time: {train_time:.2f}s,"
+              f" {train_time/len(train_loader):.2f}s/batch")
 
         # save model
         checkpoint = {
