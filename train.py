@@ -20,10 +20,10 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 1
+IMAGE_SCALE = 0.25
 LOAD_MODEL = False
 DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
-EXP_FOLDER = "exp1"
+EXP_FOLDER = "exp2"
 
 
 def main():
@@ -33,18 +33,18 @@ def main():
                                       scale=IMAGE_SCALE)
     dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(20))
-    dataset_val = Subset(dataset_val, np.arange(10))
+    dataset_train = Subset(dataset_train, np.arange(200))
+    dataset_val = Subset(dataset_val, np.arange(50))
     ###
 
     identity_collate = lambda batch: batch
     train_loader = DataLoader(dataset_train,
                               BATCH_SIZE,
-                              shuffle=False,
+                              shuffle=True,
                               collate_fn=identity_collate)
     val_loader = DataLoader(dataset_val,
                             BATCH_SIZE,
-                            shuffle=False,
+                            shuffle=True,
                             collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
@@ -65,13 +65,16 @@ def main():
         cur_train_loss = train_loop(model, train_loader, criterion, DEVICE,
                                     optimizer)
         train_losses.append(cur_train_loss)
+        end_time = timeit.default_timer()
 
         cur_val_loss = eval_loop(model, val_loader, criterion, DEVICE)
         val_losses.append(cur_val_loss)
         print(f"Validation loss: {cur_val_loss:.4f}")
 
-        end_time = timeit.default_timer()
-        print(f"Time: {end_time-start_time:.2f}s")
+        epoch_time = end_time - start_time
+        print(f"Time: {epoch_time:.2f}s,"
+              f" {epoch_time/len(train_loader):.2f}s/batch")
+
         # save model
         checkpoint = {
             "state_dict": model.state_dict(),
@@ -83,19 +86,22 @@ def main():
         # check_accuracy(val_loader, model, device=DEVICE)
 
         # save model, some examples and graphs to a folder
-        if epoch % 20 == 0:
+        if epoch % 5 == 0:
             print("save snapshot")
 
-            image, label = dataset_val[0]
-            image = image.to(DEVICE)
-            output = model(image.unsqueeze(0)).squeeze().to("cpu")
-            prediction = torch.argmax(output).item()
+            images, predictions = [], []
+            for i in range(5):
+                image, _ = dataset_val[3 + i * 7]
+                image = image.to(DEVICE)
+                output = model(image.unsqueeze(0)).squeeze().to("cpu")
+                prediction = torch.argmax(output).item()
+                images.append(image)
+                predictions.append(prediction)
             folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             folder.mkdir(parents=True, exist_ok=True)
-            CityscapesDataset.plot_image(image, save_to=folder / "image.png")
-            CityscapesDataset.plot_image(image,
-                                         num_rotation=4 - prediction,
-                                         save_to=folder / "output.png")
+            CityscapesDataset.plot_results(images,
+                                           predictions,
+                                           save_to=folder / "output.png")
 
             x = np.arange(1, epoch + 2)
             plt.clf()

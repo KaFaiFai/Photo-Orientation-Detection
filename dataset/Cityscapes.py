@@ -73,9 +73,7 @@ class CityscapesDataset(data.Dataset):
     def plot_image(cls,
                    image: torch.Tensor,
                    num_rotation=0,
-                   save_to="image.png"):
-        # plot image with rotation
-
+                   save_to="image.png") -> Image.Image:
         # rotate image
         image = torch.rot90(image, k=num_rotation, dims=[-2, -1])
 
@@ -87,7 +85,55 @@ class CityscapesDataset(data.Dataset):
             transforms.ToPILImage(),
         ])
         image = transform(image)
-        image.save(save_to)
+
+        if save_to is not None:
+            image.save(save_to)
+        return image
+
+    @classmethod
+    def plot_results(cls,
+                     images: torch.Tensor | list[torch.Tensor],
+                     labels: list[int],
+                     size=256,
+                     save_to="samples.png"):
+        """
+        Visualize model results by giving input images and predictions of number of rotations
+        """
+        canvas = Image.new('RGB', (size * len(images), size * 2))
+
+        for i, (image, label) in enumerate(zip(images, labels)):
+            x, y = size * i, 0
+            input_image = cls.plot_image(image, 0, save_to=None)
+
+            # scale input_image and paste it in the square
+            width, height = input_image.size
+            max_side = max(width, height)
+            new_size = (int(width * size // max_side),
+                        int(height * size // max_side))
+            input_image = input_image.resize(new_size)
+
+            paste_x = x + size // 2 - input_image.width // 2
+            paste_y = y + size // 2 - input_image.height // 2
+            canvas.paste(input_image, (paste_x, paste_y))
+
+            y += size
+            num_rotation = 4 - label
+            rotated_image = cls.plot_image(image, num_rotation, save_to=None)
+
+            # scale rotated_image and paste it in the square
+            width, height = rotated_image.size
+            max_side = max(width, height)
+            new_size = (int(width * size // max_side),
+                        int(height * size // max_side))
+            rotated_image = rotated_image.resize(new_size)
+
+            paste_x = x + size // 2 - rotated_image.width // 2
+            paste_y = y + size // 2 - rotated_image.height // 2
+            canvas.paste(rotated_image, (paste_x, paste_y))
+
+        if save_to is not None:
+            canvas.save(save_to)
+        return canvas
 
 
 def _test():
@@ -110,7 +156,10 @@ def _test():
     print(image[0, :3, :3])
     print(image.shape, label)
 
-    CityscapesDataset.plot_image(image, "image0.png")
+    # try visualization
+    CityscapesDataset.plot_image(image, 0, save_to="image0.png")
+    image2, label2 = dataset_train[1]
+    CityscapesDataset.plot_results([image, image2], [label, label2])
 
 
 if __name__ == "__main__":
