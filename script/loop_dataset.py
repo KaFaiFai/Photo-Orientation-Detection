@@ -10,7 +10,8 @@ def _loop_dataset(model,
                   criterion,
                   device,
                   optimizer=None,
-                  silent=False):
+                  silent=False,
+                  image_same_size=False):
     """
     used for training loop by setting optimizer or evaluation loop
     """
@@ -21,15 +22,24 @@ def _loop_dataset(model,
 
     cur_loss = 0
     for batch_idx, data in enumerate(dataloader):
-        # feed forward with single image and accumulate gradients
-        for image, label in data:
-            # expect a single image (C, H, W) and integer label
-            image = image.to(device).unsqueeze(0)
-            label = torch.LongTensor([label]).to(device)
+        if image_same_size:
+            # feed forward with multiple images of same size
+            image = [torch.Tensor(d[0]) for d in data]
+            image = torch.stack(image).to(device)
+            label = [d[1] for d in data]
+            label = torch.LongTensor(label).to(device)
 
-            # forward
             output = model(image)
             loss = criterion(output, label)
+        else:
+            # feed forward with single image and accumulate gradients
+            for image, label in data:
+                # expect a single image (C, H, W) and integer label
+                image = image.to(device).unsqueeze(0)
+                label = torch.LongTensor([label]).to(device)
+
+                output = model(image)
+                loss = criterion(output, label)
 
         # backward
         if optimizer is not None:
