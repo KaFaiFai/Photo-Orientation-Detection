@@ -98,36 +98,40 @@ class CityscapesDataset(data.Dataset):
         canvas = Image.new('RGB', (size * len(images), size * 2))
 
         for i, (image, label) in enumerate(zip(images, labels)):
+            # paste input image in upper half
             x, y = size * i, 0
             input_image = cls.plot_image(image, 0, save_to=None)
+            resized_image, (offset_x, offset_y) = cls._plot_image_in_square(input_image, size)
 
-            # scale input_image and paste it in the square
-            width, height = input_image.size
-            max_side = max(width, height)
-            new_size = (int(width * size // max_side), int(height * size // max_side))
-            input_image = input_image.resize(new_size)
+            paste_x = x + offset_x
+            paste_y = y + offset_y
+            canvas.paste(resized_image, (paste_x, paste_y))
 
-            paste_x = x + size // 2 - input_image.width // 2
-            paste_y = y + size // 2 - input_image.height // 2
-            canvas.paste(input_image, (paste_x, paste_y))
-
+            # paste predicted image in lower half
             y += size
             num_rotation = 4 - label
             rotated_image = cls.plot_image(image, num_rotation, save_to=None)
+            resized_image, (offset_x, offset_y) = cls._plot_image_in_square(rotated_image, size)
 
-            # scale rotated_image and paste it in the square
-            width, height = rotated_image.size
-            max_side = max(width, height)
-            new_size = (int(width * size // max_side), int(height * size // max_side))
-            rotated_image = rotated_image.resize(new_size)
-
-            paste_x = x + size // 2 - rotated_image.width // 2
-            paste_y = y + size // 2 - rotated_image.height // 2
-            canvas.paste(rotated_image, (paste_x, paste_y))
+            paste_x = x + offset_x
+            paste_y = y + offset_y
+            canvas.paste(resized_image, (paste_x, paste_y))
 
         if save_to is not None:
             canvas.save(save_to)
         return canvas
+
+    @classmethod
+    def _plot_image_in_square(cls, image: Image.Image, size: int):
+        # scale input_image and calculate offset in the square
+        width, height = image.size
+        max_side = max(width, height)
+        new_size = (int(width * size // max_side), int(height * size // max_side))
+        resized_image = image.resize(new_size)
+
+        offset_x = size // 2 - resized_image.width // 2
+        offset_y = size // 2 - resized_image.height // 2
+        return resized_image, (offset_x, offset_y)
 
 
 def _test():
