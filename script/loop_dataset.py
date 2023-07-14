@@ -13,7 +13,7 @@ def _loop_dataset(model,
                   optimizer=None,
                   silent=False,
                   return_samples=True,
-                  image_same_size=False):
+                  image_same_size=True):
     """
     used for training loop by setting optimizer or evaluation loop
     """

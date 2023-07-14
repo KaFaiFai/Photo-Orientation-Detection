@@ -6,6 +6,6 @@ Classify input photos into four classes: 0◦, 90◦, 180◦, or 270◦, and rot
 2. unzip them to `./training_data`
 
 ## Todo
+1. ~~Add accuracy metrics~~ :white_check_mark:
+1. Objectify dataset looper
 1. Add save model function
-2. Add accuracy metrics
-3. Objectify dataset looper

@@ -63,6 +63,8 @@ def main():
         val_loss, val_truths, val_outputs, val_time, val_samples = val_info
         val_losses.append(val_loss)
         val_metrics = ClassificationMetrics(val_truths, val_outputs)
+        print(f"Train loss: {train_loss:.4f} | Val loss: {val_loss:.4f}")
+        print("--- Validation report ---")
         val_metrics.print_report()
 
         # save model
@@ -77,7 +79,7 @@ def main():
 
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:
-            print("save snapshot")
+            print("saving snapshot")
 
             images, _, outputs = val_samples
             predictions = [torch.argmax(output).item() for output in outputs]

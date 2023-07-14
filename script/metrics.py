@@ -76,12 +76,12 @@ class ClassificationMetrics:
             raise Exception("Top K accuracy not supported with 1d outputs")
         return sklearn.metrics.top_k_accuracy_score(self.truths, self._outputs, k=k)
 
-    def print_report(self):
-        if self._outputs is None:
+    def print_report(self, topK=None):
+        if self._outputs is None or topK is None:
             print(f"Accuracy: {self.accuracy:2.2%} | Precision: {self.precision:.4f}")
             print(f"Recall:   {self.recall:.4f} | F1 score:  {self.f1_score:.4f}")
         else:
-            print(f"Top 1 Accuracy: {self.accuracy:2.2%} | Top 5 Accuracy: {self.topK_accuracy(k=5):2.2%}")
+            print(f"Top 1 Accuracy: {self.accuracy:2.2%} | Top 5 Accuracy: {self.topK_accuracy(k=topK):2.2%}")
             print(f"Precision: {self.precision:.4f} | Recall: {self.recall:.4f} | F1 score: {self.f1_score:.4f}")
 
 
