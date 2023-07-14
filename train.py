@@ -6,11 +6,11 @@ from pathlib import Path
 import numpy as np
 import os
 from dotenv import load_dotenv
-import matplotlib.pyplot as plt
 
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
 from script.loop_dataset import train_loop, eval_loop
+from script.util import plot_loss_graph
 from script.metrics import ClassificationMetrics
 
 # Hyperparameters etc.
@@ -90,15 +90,7 @@ def main():
             CityscapesDataset.plot_results(images, predictions, save_to=folder / "output.png")
             del images, outputs, predictions
 
-            x = np.arange(1, epoch + 2)
-            plt.clf()
-            plt.plot(x, train_losses, label="Train loss")
-            plt.plot(x, val_losses, label="Validation loss")
-            plt.xlabel("Epoch")
-            plt.ylabel("Loss")
-            plt.title("Train loss and validation loss over epoch")
-            plt.legend()
-            plt.savefig(folder / "loss.png")
+            plot_loss_graph(train_losses, val_losses, save_to=folder / "loss.png")
 
         del train_samples, val_samples
         print("")
