@@ -35,10 +35,7 @@ class PointWiseConv(nn.Module):
 
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        self.conv = nn.Conv2d(in_channels,
-                              out_channels,
-                              kernel_size=1,
-                              bias=False)
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
 
     def forward(self, x):
         # (B, Cin, H, W) -> (B, Cout, H, W)
@@ -82,17 +79,11 @@ class InvertedResidualConv(nn.Module):
 
 class Bottleneck(nn.Module):
 
-    def __init__(self, in_channels, out_channels, stride, expansion_factor,
-                 repeat):
+    def __init__(self, in_channels, out_channels, stride, expansion_factor, repeat):
         super().__init__()
-        layers = [
-            InvertedResidualConv(in_channels, out_channels, stride,
-                                 expansion_factor)
-        ]
+        layers = [InvertedResidualConv(in_channels, out_channels, stride, expansion_factor)]
         for i in range(1, repeat):
-            layers.append(
-                InvertedResidualConv(out_channels, out_channels, 1,
-                                     expansion_factor))
+            layers.append(InvertedResidualConv(out_channels, out_channels, 1, expansion_factor))
 
         self.block = nn.Sequential(*layers)
 
@@ -113,36 +104,24 @@ class MobileNetV2(nn.Module):
 
         expansion_factors = [1, 6, 6, 6, 6, 6, 6]
         # somehow alpha doesn't apply to the 2nd and 3rd channel
-        num_channels = [
-            to_nearest_multiple_of(c * alpha, multiple)
-            for c in (32, 16, 24, 32, 64, 96, 160, 320)
-        ]
+        num_channels = [to_nearest_multiple_of(c * alpha, multiple) for c in (32, 16, 24, 32, 64, 96, 160, 320)]
         final_channel = to_nearest_multiple_of(1280 * alpha, multiple)
         repeats = [1, 2, 3, 4, 3, 3, 1]
         strides = [1, 2, 2, 2, 1, 2, 1]
-        assert (len(expansion_factors) ==
-                (len(num_channels) - 1) == len(repeats) == len(strides))
+        assert (len(expansion_factors) == (len(num_channels) - 1) == len(repeats) == len(strides))
 
         # expand number of channels
         self.initial = nn.Sequential(
-            nn.Conv2d(3,
-                      num_channels[0],
-                      kernel_size=3,
-                      stride=2,
-                      padding=1,
-                      bias=False),
+            nn.Conv2d(3, num_channels[0], kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(num_channels[0]),
             nn.ReLU6(),
         )
 
         # break down conv into inverted residual conv
         bottlenecks = []
-        for expansion_factor, in_channels, out_channels, repeat, stride in zip(
-                expansion_factors, num_channels[:-1], num_channels[1:],
-                repeats, strides):
-            bottlenecks.append(
-                Bottleneck(in_channels, out_channels, stride, expansion_factor,
-                           repeat))
+        for expansion_factor, in_channels, out_channels, repeat, stride in zip(expansion_factors, num_channels[:-1],
+                                                                               num_channels[1:], repeats, strides):
+            bottlenecks.append(Bottleneck(in_channels, out_channels, stride, expansion_factor, repeat))
         self.bottlenecks = nn.Sequential(*bottlenecks)
 
         # classifier
@@ -150,7 +129,8 @@ class MobileNetV2(nn.Module):
             PointWiseConv(num_channels[-1], final_channel),
             nn.BatchNorm2d(final_channel),
             nn.ReLU6(),
-            nn.AdaptiveAvgPool2d(1),  # control output size for fc layer
+            nn.AdaptiveAvgPool2d(1),  # for variable input size
+            # nn.AvgPool2d(final_res),  # for same input size
             nn.Flatten(),
             nn.Dropout(p=0.001),
             nn.Linear(final_channel, num_class),

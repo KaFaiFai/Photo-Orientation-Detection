@@ -29,8 +29,7 @@ class CityscapesDataset(data.Dataset):
         assert scale > 0, "scale of images must be > 0"
 
         if split not in {"train", "val", "test"}:
-            raise ValueError(
-                f"Expect split to be 'train', 'val' or 'test', got {split}")
+            raise ValueError(f"Expect split to be 'train', 'val' or 'test', got {split}")
         self.image_dir = self.root_dir / "leftImg8bit" / split
 
         # get paths to all image files needed
@@ -70,10 +69,7 @@ class CityscapesDataset(data.Dataset):
         return len(self.samples)
 
     @classmethod
-    def plot_image(cls,
-                   image: torch.Tensor,
-                   num_rotation=0,
-                   save_to="image.png") -> Image.Image:
+    def plot_image(cls, image: torch.Tensor, num_rotation=0, save_to="image.png") -> Image.Image:
         # rotate image
         image = torch.rot90(image, k=num_rotation, dims=[-2, -1])
 
@@ -108,8 +104,7 @@ class CityscapesDataset(data.Dataset):
             # scale input_image and paste it in the square
             width, height = input_image.size
             max_side = max(width, height)
-            new_size = (int(width * size // max_side),
-                        int(height * size // max_side))
+            new_size = (int(width * size // max_side), int(height * size // max_side))
             input_image = input_image.resize(new_size)
 
             paste_x = x + size // 2 - input_image.width // 2
@@ -123,8 +118,7 @@ class CityscapesDataset(data.Dataset):
             # scale rotated_image and paste it in the square
             width, height = rotated_image.size
             max_side = max(width, height)
-            new_size = (int(width * size // max_side),
-                        int(height * size // max_side))
+            new_size = (int(width * size // max_side), int(height * size // max_side))
             rotated_image = rotated_image.resize(new_size)
 
             paste_x = x + size // 2 - rotated_image.width // 2
