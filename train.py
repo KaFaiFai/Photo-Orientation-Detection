@@ -7,7 +7,6 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
-import gc
 
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
@@ -18,7 +17,7 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 4
+BATCH_SIZE = 16
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
@@ -32,8 +31,8 @@ def main():
     dataset_train = CityscapesDataset(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(1000))
-    dataset_val = Subset(dataset_val, np.arange(100))
+    dataset_train = Subset(dataset_train, np.arange(400))
+    dataset_val = Subset(dataset_val, np.arange(40))
     ###
 
     identity_collate = lambda batch: batch
@@ -89,6 +88,7 @@ def main():
             folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             folder.mkdir(parents=True, exist_ok=True)
             CityscapesDataset.plot_results(images, predictions, save_to=folder / "output.png")
+            del images, outputs, predictions
 
             x = np.arange(1, epoch + 2)
             plt.clf()
@@ -100,6 +100,7 @@ def main():
             plt.legend()
             plt.savefig(folder / "loss.png")
 
+        del train_samples, val_samples
         print("")
 
 
