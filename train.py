@@ -12,6 +12,7 @@ import timeit
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
 from script.loop_dataset import train_loop, eval_loop
+from script.metrics import ClassificationMetrics
 
 # Hyperparameters etc.
 load_dotenv()
@@ -20,7 +21,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.25
+IMAGE_SCALE = 0.1
 LOAD_MODEL = False
 DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
 EXP_FOLDER = "exp3"
@@ -28,24 +29,16 @@ EXP_FOLDER = "exp3"
 
 def main():
     print("Init dataset ...")
-    dataset_train = CityscapesDataset(DATA_ROOT,
-                                      split="train",
-                                      scale=IMAGE_SCALE)
+    dataset_train = CityscapesDataset(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(10))
-    dataset_val = Subset(dataset_val, np.arange(5))
+    dataset_train = Subset(dataset_train, np.arange(200))
+    dataset_val = Subset(dataset_val, np.arange(50))
     ###
 
     identity_collate = lambda batch: batch
-    train_loader = DataLoader(dataset_train,
-                              BATCH_SIZE,
-                              shuffle=True,
-                              collate_fn=identity_collate)
-    val_loader = DataLoader(dataset_val,
-                            BATCH_SIZE,
-                            shuffle=True,
-                            collate_fn=identity_collate)
+    train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=True, collate_fn=identity_collate)
+    val_loader = DataLoader(dataset_val, BATCH_SIZE, shuffle=True, collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
     model = MobileNetV2(4).to(DEVICE)
@@ -59,18 +52,18 @@ def main():
     for epoch in range(NUM_EPOCHS):
         print(f"Epoch [{epoch}/{NUM_EPOCHS}]")
 
-        train_info = train_loop(model, train_loader, criterion, DEVICE,
-                                optimizer)
-        train_loss, train_time, train_samples = train_info
+        train_info = train_loop(model, train_loader, criterion, DEVICE, optimizer)
+        train_loss, train_truths, train_outputs, train_time, train_samples = train_info
         train_losses.append(train_loss)
-
-        val_info = eval_loop(model, val_loader, criterion, DEVICE)
-        val_loss, val_time, val_samples = val_info
-        val_losses.append(val_loss)
-        print(f"Validation loss: {val_loss:.4f}")
-
+        train_metrics = ClassificationMetrics(train_truths, train_outputs)
         print(f"Train time: {train_time:.2f}s,"
               f" {train_time/len(train_loader):.2f}s/batch")
+
+        val_info = eval_loop(model, val_loader, criterion, DEVICE)
+        val_loss, val_truths, val_outputs, val_time, val_samples = val_info
+        val_losses.append(val_loss)
+        val_metrics = ClassificationMetrics(val_truths, val_outputs)
+        val_metrics.print_report()
 
         # save model
         checkpoint = {
@@ -90,9 +83,7 @@ def main():
             predictions = [torch.argmax(output).item() for output in outputs]
             folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             folder.mkdir(parents=True, exist_ok=True)
-            CityscapesDataset.plot_results(images,
-                                           predictions,
-                                           save_to=folder / "output.png")
+            CityscapesDataset.plot_results(images, predictions, save_to=folder / "output.png")
 
             x = np.arange(1, epoch + 2)
             plt.clf()
