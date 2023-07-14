@@ -82,15 +82,17 @@ def main():
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:
             print("saving snapshot")
+            epoch_folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
+            epoch_folder.mkdir(parents=True, exist_ok=True)
 
-            images, _, outputs = val_samples
-            predictions = [torch.argmax(output).item() for output in outputs]
-            folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
-            folder.mkdir(parents=True, exist_ok=True)
-            CityscapesDataset.plot_results(images, predictions, save_to=folder / "output.png")
+            images, truths, outputs = val_samples
+            sample_metrics = ClassificationMetrics(truths, outputs)
+            predictions = sample_metrics.preds.tolist()
+            CityscapesDataset.plot_results(images, predictions, save_to=epoch_folder / "output.png")
             del images, outputs, predictions
 
-            plot_loss_graph(train_losses, val_losses, save_to=folder / "loss.png")
+            plot_loss_graph(train_losses, val_losses, save_to=epoch_folder / "loss.png")
+            del train_losses, val_losses
 
         del train_samples, val_samples
         print("")
