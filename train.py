@@ -76,9 +76,6 @@ def main():
         # }
         # save_checkpoint(checkpoint)
 
-        # # check accuracy
-        # check_accuracy(val_loader, model, device=DEVICE)
-
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:
             print("saving snapshot")

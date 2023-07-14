@@ -77,7 +77,7 @@ def _loop_dataset(model,
                   f" Loss: {loss.item()/batch_size:.4f}")
 
     total_loss /= len(dataloader)
-    all_outputs = torch.cat(all_outputs)
+    all_outputs = torch.cat(all_outputs) # from list of tensor to numpy array
     all_outputs = all_outputs.detach().cpu()
     all_outputs = np.array(all_outputs).squeeze()
 
