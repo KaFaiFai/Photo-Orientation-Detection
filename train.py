@@ -7,7 +7,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
-import timeit
+import gc
 
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
@@ -32,8 +32,8 @@ def main():
     dataset_train = CityscapesDataset(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(200))
-    dataset_val = Subset(dataset_val, np.arange(50))
+    dataset_train = Subset(dataset_train, np.arange(1000))
+    dataset_val = Subset(dataset_val, np.arange(100))
     ###
 
     identity_collate = lambda batch: batch
@@ -67,11 +67,14 @@ def main():
         print("--- Validation report ---")
         val_metrics.print_report()
 
+        del train_info, train_loss, train_truths, train_outputs
+        del val_info, val_loss, val_truths, val_outputs
+
         # save model
-        checkpoint = {
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-        }
+        # checkpoint = {
+        #     "state_dict": model.state_dict(),
+        #     "optimizer": optimizer.state_dict(),
+        # }
         # save_checkpoint(checkpoint)
 
         # # check accuracy

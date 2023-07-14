@@ -4,6 +4,7 @@ Loop through whole dataset, optionally optimize model and return loss
 
 import torch
 import timeit
+import numpy as np
 
 
 def _loop_dataset(model,
@@ -73,12 +74,16 @@ def _loop_dataset(model,
         if batch_idx % 50 == 0 and not silent:
             print(f"[Batch {batch_idx:4d}/{len(dataloader)}]"
                   f" Loss: {loss.item():.4f}")
+
     total_loss /= len(dataloader)
     all_outputs = torch.cat(all_outputs)
+    all_outputs = all_outputs.detach().cpu()
+    all_outputs = np.array(all_outputs).squeeze()
 
     end_time = timeit.default_timer()
     time_spent = end_time - start_time
 
+    del loss, output
     if return_samples:
         return total_loss, all_truths, all_outputs, time_spent, samples
     return total_loss, all_truths, all_outputs, time_spent
