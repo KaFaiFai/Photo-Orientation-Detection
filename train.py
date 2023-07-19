@@ -6,19 +6,18 @@ from pathlib import Path
 import numpy as np
 import os
 from dotenv import load_dotenv
-import matplotlib.pyplot as plt
-import gc
 
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
 from script.loop_dataset import train_loop, eval_loop
+from script.util import plot_loss_graph
 from script.metrics import ClassificationMetrics
 
 # Hyperparameters etc.
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 4
+BATCH_SIZE = 16
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
@@ -77,29 +76,20 @@ def main():
         # }
         # save_checkpoint(checkpoint)
 
-        # # check accuracy
-        # check_accuracy(val_loader, model, device=DEVICE)
-
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:
             print("saving snapshot")
+            epoch_folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
+            epoch_folder.mkdir(parents=True, exist_ok=True)
 
             images, _, outputs = val_samples
             predictions = [torch.argmax(output).item() for output in outputs]
             folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             folder.mkdir(parents=True, exist_ok=True)
             CityscapesDataset.plot_results(images, predictions, save_to=folder / "output.png")
-            del images, outputs
 
-            x = np.arange(1, epoch + 2)
-            plt.clf()
-            plt.plot(x, train_losses, label="Train loss")
-            plt.plot(x, val_losses, label="Validation loss")
-            plt.xlabel("Epoch")
-            plt.ylabel("Loss")
-            plt.title("Train loss and validation loss over epoch")
-            plt.legend()
-            plt.savefig(folder / "loss.png")
+            plot_loss_graph(train_losses, val_losses, save_to=epoch_folder / "loss.png")
+            del train_losses, val_losses
 
         del train_samples, val_samples
         print("")

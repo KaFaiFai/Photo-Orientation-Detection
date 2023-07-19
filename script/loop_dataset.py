@@ -7,6 +7,20 @@ import timeit
 import numpy as np
 
 
+class DatasetLooper():
+
+    def __init__(self,
+                 model,
+                 dataloader,
+                 criterion,
+                 device,
+                 optimizer=None,
+                 silent=False,
+                 return_samples=True,
+                 image_same_size=True) -> None:
+        pass
+
+
 def _loop_dataset(model,
                   dataloader,
                   criterion,
@@ -31,6 +45,7 @@ def _loop_dataset(model,
 
     samples = ([], [], [])
     for batch_idx, data in enumerate(dataloader):
+        batch_size = len(data)
         if image_same_size:
             # feed forward with multiple images of same size
             image = [torch.Tensor(d[0]) for d in data]
@@ -73,10 +88,10 @@ def _loop_dataset(model,
         total_loss += loss.item()
         if batch_idx % 50 == 0 and not silent:
             print(f"[Batch {batch_idx:4d}/{len(dataloader)}]"
-                  f" Loss: {loss.item():.4f}")
+                  f" Loss: {loss.item()/batch_size:.4f}")
 
     total_loss /= len(dataloader)
-    all_outputs = torch.cat(all_outputs)
+    all_outputs = torch.cat(all_outputs)  # from list of tensor to numpy array
     all_outputs = all_outputs.detach().cpu()
     all_outputs = np.array(all_outputs).squeeze()
 
