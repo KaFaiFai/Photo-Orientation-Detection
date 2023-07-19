@@ -17,11 +17,11 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 16
+BATCH_SIZE = 2
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
-LOAD_MODEL = False
+LOAD_FROM = None
 DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
 EXP_FOLDER = "exp4"
 
@@ -31,8 +31,8 @@ def main():
     dataset_train = CityscapesDataset(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(400))
-    dataset_val = Subset(dataset_val, np.arange(40))
+    dataset_train = Subset(dataset_train, np.arange(50))
+    dataset_val = Subset(dataset_val, np.arange(5))
     ###
 
     identity_collate = lambda batch: batch
@@ -43,8 +43,8 @@ def main():
     model = MobileNetV2(4).to(DEVICE)
     criterion = nn.CrossEntropyLoss(reduction="sum")  # to get average easily
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # if LOAD_MODEL:
-    #     load_checkpoint(torch.load("my_checkpoint.pth.tar"), model)
+    if LOAD_FROM is not None:
+        model.load_state_dict(torch.load(LOAD_FROM))
 
     train_losses = []
     val_losses = []
@@ -82,14 +82,14 @@ def main():
             epoch_folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             epoch_folder.mkdir(parents=True, exist_ok=True)
 
+            torch.save(model.state_dict(), epoch_folder / f"model.pt")
+
+            # save examples
             images, _, outputs = val_samples
             predictions = [torch.argmax(output).item() for output in outputs]
-            folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
-            folder.mkdir(parents=True, exist_ok=True)
-            CityscapesDataset.plot_results(images, predictions, save_to=folder / "output.png")
+            CityscapesDataset.plot_results(images, predictions, save_to=epoch_folder / "output.png")
 
             plot_loss_graph(train_losses, val_losses, save_to=epoch_folder / "loss.png")
-            del train_losses, val_losses
 
         del train_samples, val_samples
         print("")

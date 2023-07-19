@@ -14,13 +14,13 @@ def variable_size_collate(batch):
 def plot_loss_graph(train_losses=None, val_losses=None, test_losses=None, save_to="loss.png"):
     plt.clf()
     if train_losses is not None:
-        x = np.arange(1, len(train_losses) + 2)
+        x = np.arange(1, len(train_losses) + 1)
         plt.plot(x, train_losses, label="Train loss")
     if val_losses is not None:
-        x = np.arange(1, len(val_losses) + 2)
+        x = np.arange(1, len(val_losses) + 1)
         plt.plot(x, val_losses, label="Validation loss")
     if test_losses is not None:
-        x = np.arange(1, len(test_losses) + 2)
+        x = np.arange(1, len(test_losses) + 1)
         plt.plot(x, test_losses, label="Test loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
