@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from dataset.Cityscapes import CityscapesDataset
 from model.MobileNetV2 import MobileNetV2
+from model.EfficientNet import EfficientNet
 from script.loop_dataset import train_loop, eval_loop
 from script.util import plot_loss_graph
 from script.metrics import ClassificationMetrics
@@ -40,7 +41,7 @@ def main():
     val_loader = DataLoader(dataset_val, BATCH_SIZE, shuffle=True, collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
-    model = MobileNetV2(4).to(DEVICE)
+    model = EfficientNet(4).to(DEVICE)
     criterion = nn.CrossEntropyLoss(reduction="sum")  # to get average easily
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     if LOAD_FROM is not None:
