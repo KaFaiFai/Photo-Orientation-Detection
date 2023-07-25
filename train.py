@@ -33,7 +33,7 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(200))
+    dataset_train = Subset(dataset_train, np.arange(20))
     dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
@@ -69,6 +69,7 @@ def main():
 
         del train_info, train_loss, train_truths, train_outputs
         del val_info, val_loss, val_truths, val_outputs
+        torch.cuda.empty_cache()
 
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:

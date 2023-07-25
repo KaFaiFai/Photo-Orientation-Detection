@@ -61,6 +61,8 @@ def _loop_dataset(model,
             # save a few samples
             if return_samples and batch_idx == 0:
                 samples = (image, label, output)
+            
+            del image, label
         else:
             # feed forward with single image and accumulate gradients
             for image, label in data:
@@ -79,6 +81,8 @@ def _loop_dataset(model,
                     samples[1].append(label)
                     samples[2].append(output)
 
+                del image, label
+
         # backward
         if optimizer is not None:
             optimizer.zero_grad()
@@ -86,9 +90,10 @@ def _loop_dataset(model,
             optimizer.step()
 
         total_loss += loss.item()
-        if batch_idx % 50 == 0 and not silent:
+        if batch_idx % 20 == 0 and not silent:
             print(f"[Batch {batch_idx:4d}/{len(dataloader)}]"
                   f" Loss: {loss.item()/batch_size:.4f}")
+            print(torch.cuda.memory_summary())
 
     total_loss /= len(dataloader)
     all_outputs = torch.cat(all_outputs)  # from list of tensor to numpy array
@@ -99,6 +104,7 @@ def _loop_dataset(model,
     time_spent = end_time - start_time
 
     del loss, output
+    torch.cuda.empty_cache()
     if return_samples:
         return total_loss, all_truths, all_outputs, time_spent, samples
     return total_loss, all_truths, all_outputs, time_spent
