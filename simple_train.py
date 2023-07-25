@@ -39,8 +39,8 @@ def main():
     ###
 
     identity_collate = lambda batch: batch
-    train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=True, collate_fn=identity_collate)
-    val_loader = DataLoader(dataset_val, BATCH_SIZE, shuffle=True, collate_fn=identity_collate)
+    train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=False, collate_fn=identity_collate)
+    val_loader = DataLoader(dataset_val, BATCH_SIZE, shuffle=False, collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
     model = MobileNetV2(4).to(DEVICE)
@@ -49,10 +49,13 @@ def main():
     if LOAD_FROM is not None:
         model.load_state_dict(torch.load(LOAD_FROM))
 
+    train_losses = []
     for epoch in range(NUM_EPOCHS):
         print(f"Epoch [{epoch}/{NUM_EPOCHS}]")
 
+        model.train()
         start_time = timeit.default_timer()
+        cur_train_loss = 0
         for batch_idx, data in enumerate(train_loader):
             batch_size = len(data)
             # feed forward with single image and accumulate gradients
@@ -69,9 +72,14 @@ def main():
             loss.backward()
             optimizer.step()
 
+            cur_train_loss += loss.item()
             if batch_idx % 20 == 0:
                 print(f"[Batch {batch_idx:4d}/{len(train_loader)}]" f" Loss: {loss.item()/batch_size:.4f}")
-        
+
+        cur_train_loss /= len(train_loader)
+        train_losses.append(cur_train_loss)
+        # train_metrics = ClassificationMetrics(train_truths, train_outputs)
+
         end_time = timeit.default_timer()
         train_time = end_time - start_time
         print(f"Train time: {train_time:.2f}s," f" {train_time/len(train_loader):.2f}s/batch")

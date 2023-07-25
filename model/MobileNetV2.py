@@ -154,16 +154,11 @@ def test():
     batch_size = 5
     device = "cuda" if torch.cuda.is_available() else "cpu"
     net = MobileNetV2(1000).to(device)
-    summary(net, input_size=(batch_size, 3, 523, 523))
+    # summary(net, input_size=(batch_size, 3, 128, 128))
 
     # verify it works for variable input size
-    y = net(torch.randn((batch_size, 3, 523, 523)).to(device))
-    y = net(torch.randn((batch_size, 3, 329, 175)).to(device))
-
-    # network_state = net.state_dict()
-    # print("PyTorch model's state_dict:")
-    # for layer, tensor in network_state.items():
-    #     print(f"{layer:<45}: {tensor.size()}")
+    y = net(torch.randn((batch_size, 3, 1, 1)).to(device))
+    # y = net(torch.randn((batch_size, 3, 329, 175)).to(device))
 
 
 if __name__ == "__main__":
