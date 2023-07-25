@@ -7,7 +7,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 
-from dataset.Cityscapes import CityscapesDataset
+from dataset import CityscapesDataset, ImagenetDataset
 from model.MobileNetV2 import MobileNetV2
 from model.EfficientNet import EfficientNet
 from script.loop_dataset import train_loop, eval_loop
@@ -23,14 +23,15 @@ NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
 LOAD_FROM = None
-DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
+DATASET = ImagenetDataset
+DATA_ROOT = os.environ["IMAGENET_DATASET"]
 EXP_FOLDER = "exp4"
 
 
 def main():
     print("Init dataset ...")
-    dataset_train = CityscapesDataset(DATA_ROOT, split="train", scale=IMAGE_SCALE)
-    dataset_val = CityscapesDataset(DATA_ROOT, split="val", scale=IMAGE_SCALE)
+    dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
+    dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
     dataset_train = Subset(dataset_train, np.arange(50))
     dataset_val = Subset(dataset_val, np.arange(5))

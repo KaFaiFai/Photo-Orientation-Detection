@@ -1,5 +1,5 @@
 """
-To load the Cityscapes Dataset for panoptic segmentation
+To load the Cityscapes Dataset
 source: https://www.cityscapes-dataset.com/
 github: https://github.com/mcordts/cityscapesScripts/tree/master
 """
@@ -40,9 +40,8 @@ class CityscapesDataset(data.Dataset):
         self.samples = [(p, i) for p in self.image_files for i in range(4)]
 
         # transform for train images and labels/instance
-        # the size is scaled to match the longest side (width)
         self.scale = scale
-        self.size = (int(self.WIDTH * scale), int(self.WIDTH * scale))
+        self.size = (int(self.HEIGHT * scale), int(self.WIDTH * scale))
         self.transform_image = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(self.size, antialias=None),
