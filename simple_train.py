@@ -1,3 +1,4 @@
+import timeit
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -18,14 +19,14 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 2
+BATCH_SIZE = 16
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.5
 LOAD_FROM = None
 DATASET = ImagenetDataset
 DATA_ROOT = os.environ["IMAGENET_DATASET"]
-EXP_FOLDER = "exp4"
+EXP_FOLDER = "exp1"
 
 
 def main():
@@ -33,8 +34,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(200))
-    dataset_val = Subset(dataset_val, np.arange(20))
+    # dataset_train = Subset(dataset_train, np.arange(200))
+    # dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
     identity_collate = lambda batch: batch
@@ -51,6 +52,7 @@ def main():
     for epoch in range(NUM_EPOCHS):
         print(f"Epoch [{epoch}/{NUM_EPOCHS}]")
 
+        start_time = timeit.default_timer()
         for batch_idx, data in enumerate(train_loader):
             batch_size = len(data)
             # feed forward with single image and accumulate gradients
@@ -69,6 +71,10 @@ def main():
 
             if batch_idx % 20 == 0:
                 print(f"[Batch {batch_idx:4d}/{len(train_loader)}]" f" Loss: {loss.item()/batch_size:.4f}")
+        
+        end_time = timeit.default_timer()
+        train_time = end_time - start_time
+        print(f"Train time: {train_time:.2f}s," f" {train_time/len(train_loader):.2f}s/batch")
 
         print("")
 
