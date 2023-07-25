@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 import sys
 
-sys.path.append(Path(__file__).resolve())
+sys.path.append(str((Path(__file__) / "..").resolve()))
 from BaseDataset import BaseDataset
 
 

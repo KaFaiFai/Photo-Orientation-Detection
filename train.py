@@ -21,7 +21,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 2
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.1
+IMAGE_SCALE = 0.5
 LOAD_FROM = None
 DATASET = ImagenetDataset
 DATA_ROOT = os.environ["IMAGENET_DATASET"]
@@ -33,8 +33,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(50))
-    dataset_val = Subset(dataset_val, np.arange(5))
+    dataset_train = Subset(dataset_train, np.arange(200))
+    dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
     identity_collate = lambda batch: batch
@@ -42,7 +42,7 @@ def main():
     val_loader = DataLoader(dataset_val, BATCH_SIZE, shuffle=True, collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
-    model = EfficientNet(4).to(DEVICE)
+    model = MobileNetV2(4).to(DEVICE)
     criterion = nn.CrossEntropyLoss(reduction="sum")  # to get average easily
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     if LOAD_FROM is not None:
@@ -57,8 +57,7 @@ def main():
         train_loss, train_truths, train_outputs, train_time, train_samples = train_info
         train_losses.append(train_loss)
         train_metrics = ClassificationMetrics(train_truths, train_outputs)
-        print(f"Train time: {train_time:.2f}s,"
-              f" {train_time/len(train_loader):.2f}s/batch")
+        print(f"Train time: {train_time:.2f}s," f" {train_time/len(train_loader):.2f}s/batch")
 
         val_info = eval_loop(model, val_loader, criterion, DEVICE)
         val_loss, val_truths, val_outputs, val_time, val_samples = val_info
@@ -70,13 +69,6 @@ def main():
 
         del train_info, train_loss, train_truths, train_outputs
         del val_info, val_loss, val_truths, val_outputs
-
-        # save model
-        # checkpoint = {
-        #     "state_dict": model.state_dict(),
-        #     "optimizer": optimizer.state_dict(),
-        # }
-        # save_checkpoint(checkpoint)
 
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:
