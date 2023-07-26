@@ -93,7 +93,6 @@ def _loop_dataset(model,
         if batch_idx % 20 == 0 and not silent:
             print(f"[Batch {batch_idx:4d}/{len(dataloader)}]"
                   f" Loss: {loss.item()/batch_size:.4f}")
-            print(torch.cuda.memory_summary())
 
     total_loss /= len(dataloader)
     all_outputs = torch.cat(all_outputs)  # from list of tensor to numpy array

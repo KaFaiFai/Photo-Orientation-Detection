@@ -18,14 +18,14 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 2
+BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.5
 LOAD_FROM = None
-DATASET = ImagenetDataset
-DATA_ROOT = os.environ["IMAGENET_DATASET"]
-EXP_FOLDER = "exp4"
+DATASET = CityscapesDataset
+DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
+EXP_FOLDER = "exp1"
 
 
 def main():
