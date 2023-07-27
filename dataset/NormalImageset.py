@@ -17,6 +17,7 @@ from BaseDataset import BaseDataset
 
 class NormalImageDataset(BaseDataset):
     IMAGE_EXTENSION = (".jpg", ".jpeg", ".png")
+    min_size = 32
 
     def __init__(self, root: str | Path, split: str = "train", scale=1):
         """
@@ -40,7 +41,6 @@ class NormalImageDataset(BaseDataset):
 
         self.image_dir = self.root_dir / split
 
-
         # get paths to all image files needed
         self.image_files = []
         for file in self.image_dir.rglob("*.*"):
@@ -53,7 +53,7 @@ class NormalImageDataset(BaseDataset):
         self.scale = scale
         self.transform_image = transforms.Compose(
             [
-                self.rescale(self.scale),
+                self.rescale(self.scale, min_size=self.min_size),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=self.IMAGENET_MEAN,
