@@ -8,7 +8,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 
-from dataset import CityscapesDataset, ImagenetDataset
+from dataset import CityscapesDataset, ImagenetDataset, NormalImageDataset
 from model.MobileNetV2 import MobileNetV2
 from model.EfficientNet import EfficientNet
 from script.loop_dataset import train_loop, eval_loop
@@ -19,13 +19,13 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 16
+BATCH_SIZE = 1
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.5
+IMAGE_SCALE = 1
 LOAD_FROM = None
-DATASET = CityscapesDataset
-DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
+DATASET = NormalImageDataset
+DATA_ROOT = os.environ["NORMAL_IMAGE_DATASET"]
 EXP_FOLDER = "exp1"
 
 

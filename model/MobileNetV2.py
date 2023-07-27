@@ -11,7 +11,6 @@ def to_nearest_multiple_of(num, multiple):
 
 
 class DepthWiseConv(nn.Module):
-
     def __init__(self, num_channels, kernel_size=3, stride=1):
         super().__init__()
         padding = (kernel_size - 1) // 2
@@ -32,7 +31,6 @@ class DepthWiseConv(nn.Module):
 
 
 class PointWiseConv(nn.Module):
-
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
@@ -44,7 +42,6 @@ class PointWiseConv(nn.Module):
 
 
 class InvertedResidualConv(nn.Module):
-
     def __init__(self, in_channels, out_channels, stride, expansion_factor):
         super().__init__()
         self.stride = stride
@@ -78,12 +75,15 @@ class InvertedResidualConv(nn.Module):
 
 
 class Bottleneck(nn.Module):
-
     def __init__(self, in_channels, out_channels, stride, expansion_factor, repeat):
         super().__init__()
-        layers = [InvertedResidualConv(in_channels, out_channels, stride, expansion_factor)]
+        layers = [
+            InvertedResidualConv(in_channels, out_channels, stride, expansion_factor)
+        ]
         for i in range(1, repeat):
-            layers.append(InvertedResidualConv(out_channels, out_channels, 1, expansion_factor))
+            layers.append(
+                InvertedResidualConv(out_channels, out_channels, 1, expansion_factor)
+            )
 
         self.block = nn.Sequential(*layers)
 
@@ -94,7 +94,6 @@ class Bottleneck(nn.Module):
 
 
 class MobileNetV2(nn.Module):
-
     def __init__(self, num_class, alpha=1.0):
         super().__init__()
         if alpha <= 0:
@@ -104,24 +103,37 @@ class MobileNetV2(nn.Module):
 
         expansion_factors = [1, 6, 6, 6, 6, 6, 6]
         # somehow alpha doesn't apply to the 2nd and 3rd channel
-        num_channels = [to_nearest_multiple_of(c * alpha, multiple) for c in (32, 16, 24, 32, 64, 96, 160, 320)]
+        num_channels = [
+            to_nearest_multiple_of(c * alpha, multiple)
+            for c in (32, 16, 24, 32, 64, 96, 160, 320)
+        ]
         final_channel = to_nearest_multiple_of(1280 * alpha, multiple)
         repeats = [1, 2, 3, 4, 3, 3, 1]
         strides = [1, 2, 2, 2, 1, 2, 1]
-        assert (len(expansion_factors) == (len(num_channels) - 1) == len(repeats) == len(strides))
+        assert (
+            len(expansion_factors)
+            == (len(num_channels) - 1)
+            == len(repeats)
+            == len(strides)
+        )
 
         # expand number of channels
         self.initial = nn.Sequential(
-            nn.Conv2d(3, num_channels[0], kernel_size=3, stride=2, padding=1, bias=False),
+            nn.Conv2d(
+                3, num_channels[0], kernel_size=3, stride=2, padding=1, bias=False
+            ),
             nn.BatchNorm2d(num_channels[0]),
             nn.ReLU6(),
         )
 
         # break down conv into inverted residual conv
         bottlenecks = []
-        for expansion_factor, in_channels, out_channels, repeat, stride in zip(expansion_factors, num_channels[:-1],
-                                                                               num_channels[1:], repeats, strides):
-            bottlenecks.append(Bottleneck(in_channels, out_channels, stride, expansion_factor, repeat))
+        for expansion_factor, in_channels, out_channels, repeat, stride in zip(
+            expansion_factors, num_channels[:-1], num_channels[1:], repeats, strides
+        ):
+            bottlenecks.append(
+                Bottleneck(in_channels, out_channels, stride, expansion_factor, repeat)
+            )
         self.bottlenecks = nn.Sequential(*bottlenecks)
 
         # classifier
@@ -153,12 +165,20 @@ def test():
 
     batch_size = 5
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    net = MobileNetV2(1000).to(device)
+    net = MobileNetV2(4).to(device)
     # summary(net, input_size=(batch_size, 3, 128, 128))
 
     # verify it works for variable input size
-    y = net(torch.randn((batch_size, 3, 1, 1)).to(device))
-    # y = net(torch.randn((batch_size, 3, 329, 175)).to(device))
+    y = net(torch.randn((batch_size, 3, 125, 250)).to(device))
+    y = net(torch.randn((batch_size, 3, 320, 180)).to(device))
+
+    # the minimum input size is 33x33 if the batch size = 1
+    for image_size in ((33, 33), (32, 32)):
+        try:
+            y = net(torch.randn((1, 3, *image_size)).to(device))
+            print(f"Model supports image size with {image_size}")
+        except:
+            print(f"Model does not support image size <= {image_size}")
 
 
 if __name__ == "__main__":

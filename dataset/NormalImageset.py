@@ -15,16 +15,38 @@ sys.path.append(str((Path(__file__) / "..").resolve()))
 from BaseDataset import BaseDataset
 
 
-class ImagenetDataset(BaseDataset):
+class NormalImageDataset(BaseDataset):
+    IMAGE_EXTENSION = (".jpg", ".jpeg", ".png")
+
     def __init__(self, root: str | Path, split: str = "train", scale=1):
+        """
+        Expected folder structure:
+        root
+        |--     train
+        |       |--     folder1
+        |               |--     ...
+        |                       |-- image.jpg
+        |--     val
+        |       |--     folder1
+        |               |--     ...
+        |                       |-- image.jpeg
+        |--     test
+                |--     folder1
+                        |--     ...
+                                |-- image.png
+
+        """
         super().__init__(root, split, scale)
-        if split == "test":
-            raise ValueError(f"Imagenet does not support test set")
 
         self.image_dir = self.root_dir / split
 
+
         # get paths to all image files needed
-        self.image_files = list(self.image_dir.rglob("*.JPEG"))
+        self.image_files = []
+        for file in self.image_dir.rglob("*.*"):
+            if file.suffix.lower() in self.IMAGE_EXTENSION:
+                self.image_files.append(file)
+        self.image_files.sort(key=lambda p: p.name)
 
         # transform for train images and labels/instance
         # the size is scaled to match the longest side (width)
@@ -65,19 +87,11 @@ def _test():
     import timeit
 
     # see where the dataset is
-    dotenv.load_dotenv()
-    root = os.environ["IMAGENET_DATASET"]
+    root = "training_data/variable_size"
 
     # try loading all the data
-    start_timer = timeit.default_timer()
-    dataset_train = ImagenetDataset(root, scale=0.4)
-    ckpt = timeit.default_timer()
-    print(f"Timefor loading training dataset: {ckpt-start_timer:.2f}s")
-
-    dataset_val = ImagenetDataset(root, split="val")
-    end_timer = timeit.default_timer()
-    print(f"Timefor loading validation dataset: {end_timer-ckpt:.2f}s")
-
+    dataset_train = NormalImageDataset(root, scale=0.4)
+    dataset_val = NormalImageDataset(root, split="val")
     print(f"{len(dataset_train)=}| {len(dataset_val)=}")
 
     # pry the data format
@@ -86,9 +100,9 @@ def _test():
     print(image.shape, label)
 
     # try visualization
-    ImagenetDataset.plot_image(image, 0, save_to="image0.png")
+    NormalImageDataset.plot_image(image, 0, save_to="image0.png")
     image2, label2 = dataset_train[1]
-    ImagenetDataset.plot_results([image, image2], [label, label2])
+    NormalImageDataset.plot_results([image, image2], [label, label2])
 
 
 if __name__ == "__main__":
