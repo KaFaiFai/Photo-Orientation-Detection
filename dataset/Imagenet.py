@@ -27,8 +27,6 @@ class ImagenetDataset(BaseDataset):
         self.image_files = list(self.image_dir.rglob("*.JPEG"))
 
         # transform for train images and labels/instance
-        # the size is scaled to match the longest side (width)
-        self.scale = scale
         self.transform_image = transforms.Compose(
             [
                 self.rescale(self.scale),

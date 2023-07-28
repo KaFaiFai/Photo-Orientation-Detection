@@ -1,6 +1,5 @@
 """
-To load the Imagenet Dataset (ILSVRC2012 version)
-https://image-net.org/download.php
+A general dataset type to load image folders
 """
 
 from pathlib import Path
@@ -25,15 +24,15 @@ class NormalImageDataset(BaseDataset):
         root
         |--     train
         |       |--     folder1
-        |               |--     ...
+        |               |--     **
         |                       |-- image.jpg
         |--     val
         |       |--     folder1
-        |               |--     ...
+        |               |--     **
         |                       |-- image.jpeg
         |--     test
                 |--     folder1
-                        |--     ...
+                        |--     **
                                 |-- image.png
 
         """
@@ -49,8 +48,6 @@ class NormalImageDataset(BaseDataset):
         self.image_files.sort(key=lambda p: p.name)
 
         # transform for train images and labels/instance
-        # the size is scaled to match the longest side (width)
-        self.scale = scale
         self.transform_image = transforms.Compose(
             [
                 self.rescale(self.scale, min_size=self.min_size),
