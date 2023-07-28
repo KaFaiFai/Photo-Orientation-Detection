@@ -7,7 +7,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 
-from dataset import CityscapesDataset, ImagenetDataset
+from dataset import CityscapesDataset, ImagenetDataset, GeneralDataset
 from model.MobileNetV2 import MobileNetV2
 from model.EfficientNet import EfficientNet
 from script.loop_dataset import train_loop, eval_loop
@@ -21,7 +21,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.5
+IMAGE_SCALE = 0.2
 LOAD_FROM = None
 DATASET = CityscapesDataset
 DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
@@ -33,7 +33,7 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(20))
+    dataset_train = Subset(dataset_train, np.arange(50))
     dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
@@ -63,13 +63,10 @@ def main():
         val_loss, val_truths, val_outputs, val_time, val_samples = val_info
         val_losses.append(val_loss)
         val_metrics = ClassificationMetrics(val_truths, val_outputs)
+        
         print(f"Train loss: {train_loss:.4f} | Val loss: {val_loss:.4f}")
         print("--- Validation report ---")
         val_metrics.print_report()
-
-        del train_info, train_loss, train_truths, train_outputs
-        del val_info, val_loss, val_truths, val_outputs
-        torch.cuda.empty_cache()
 
         # save model, some examples and graphs to a folder
         if epoch % 5 == 0:
@@ -86,7 +83,6 @@ def main():
 
             plot_loss_graph(train_losses, val_losses, save_to=epoch_folder / "loss.png")
 
-        del train_samples, val_samples
         print("")
 
 

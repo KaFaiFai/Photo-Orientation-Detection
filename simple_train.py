@@ -1,3 +1,8 @@
+"""
+Provides a simple training loop
+Used only for checking gpu memory usage
+"""
+
 import timeit
 import torch
 import torch.nn as nn
@@ -22,10 +27,10 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.1
+IMAGE_SCALE = 0.2
 LOAD_FROM = None
-DATASET = ImagenetDataset
-DATA_ROOT = os.environ["IMAGENET_DATASET"]
+DATASET = CityscapesDataset
+DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
 EXP_FOLDER = None
 
 
@@ -34,8 +39,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    # dataset_train = Subset(dataset_train, np.arange(200))
-    # dataset_val = Subset(dataset_val, np.arange(20))
+    dataset_train = Subset(dataset_train, np.arange(50))
+    dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
     identity_collate = lambda batch: batch
@@ -55,7 +60,12 @@ def main():
 
         model.train()
         start_time = timeit.default_timer()
-        cur_train_loss = 0
+
+        # train_info = train_loop(model, train_loader, criterion, DEVICE, optimizer)
+        # train_loss, train_truths, train_outputs, train_time, train_samples = train_info
+
+        
+        train_loss = 0
         for batch_idx, data in enumerate(train_loader):
             batch_size = len(data)
             total_image_size = 0
@@ -75,7 +85,7 @@ def main():
             loss.backward()
             optimizer.step()
 
-            cur_train_loss += loss.item()
+            train_loss += loss.item()
             if batch_idx % 1 == 0:
                 # if every image is a square, their equivalent side will be
                 avg_image_side = (total_image_size / batch_size) ** 0.5
@@ -86,8 +96,7 @@ def main():
                     f"| Image size: {int(avg_image_side)}"
                 )
 
-        cur_train_loss /= len(train_loader)
-        train_losses.append(cur_train_loss)
+        train_losses.append(train_loss)
         # train_metrics = ClassificationMetrics(train_truths, train_outputs)
 
         end_time = timeit.default_timer()
