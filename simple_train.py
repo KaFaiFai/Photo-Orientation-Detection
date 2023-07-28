@@ -25,7 +25,7 @@ NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
 LOAD_FROM = None
 DATASET = GeneralDataset
-DATA_ROOT = os.environ["NORMAL_IMAGE_DATASET"]
+DATA_ROOT = os.environ["GENERAL_DATASET"]
 EXP_FOLDER = "exp1"
 
 
