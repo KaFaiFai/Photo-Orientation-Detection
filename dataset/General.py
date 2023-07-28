@@ -16,9 +16,8 @@ from BaseDataset import BaseDataset
 
 class GeneralDataset(BaseDataset):
     IMAGE_EXTENSION = (".jpg", ".jpeg", ".png")
-    min_size = 33
 
-    def __init__(self, root: str | Path, split: str = "train", scale=1):
+    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=33):
         """
         Expected folder structure:
         root
@@ -48,9 +47,9 @@ class GeneralDataset(BaseDataset):
         self.image_files.sort(key=lambda p: p.name)
 
         # transform for train images and labels/instance
-        self.transform_image = transforms.Compose(
+        self.transform = transforms.Compose(
             [
-                self.rescale(self.scale, min_size=self.min_size),
+                self.rescale(self.scale, min_size=min_size),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=self.IMAGENET_MEAN,
@@ -67,7 +66,7 @@ class GeneralDataset(BaseDataset):
 
         # read image
         image = Image.open(image_file).convert("RGB")
-        image = self.transform_image(image)
+        image = self.transform(image)
 
         # rotate image
         image = torch.rot90(image, k=label, dims=[-2, -1])
@@ -84,7 +83,8 @@ def _test():
     import timeit
 
     # see where the dataset is
-    root = "training_data/variable_size"
+    dotenv.load_dotenv()
+    root = os.environ["GENERAL_DATASET"]
 
     # try loading all the data
     dataset_train = GeneralDataset(root, scale=0.4)

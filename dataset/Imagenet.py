@@ -27,9 +27,9 @@ class ImagenetDataset(BaseDataset):
         self.image_files = list(self.image_dir.rglob("*.JPEG"))
 
         # transform for train images and labels/instance
-        self.transform_image = transforms.Compose(
+        self.transform = transforms.Compose(
             [
-                self.rescale(self.scale),
+                self.rescale(scale),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=self.IMAGENET_MEAN,
@@ -46,7 +46,7 @@ class ImagenetDataset(BaseDataset):
 
         # read image
         image = Image.open(image_file).convert("RGB")
-        image = self.transform_image(image)
+        image = self.transform(image)
 
         # rotate image
         image = torch.rot90(image, k=label, dims=[-2, -1])

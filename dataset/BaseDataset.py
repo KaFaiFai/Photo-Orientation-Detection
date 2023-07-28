@@ -28,6 +28,7 @@ class BaseDataset(data.Dataset):
         self.scale = scale
         assert scale > 0, "scale of images must be > 0"
 
+        self.split = split
         if split not in {"train", "val", "test"}:
             raise ValueError(f"Expect split to be 'train', 'val' or 'test', got {split}")
 

@@ -17,9 +17,7 @@ from BaseDataset import BaseDataset
 
 
 class CityscapesDataset(BaseDataset):
-    CHANNELS, HEIGHT, WIDTH = 3, 1024, 2048
-
-    def __init__(self, root: str | Path, split: str = "train", scale=1):
+    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=33):
         super().__init__(root, split, scale)
 
         self.image_dir = self.root_dir / "leftImg8bit" / split
@@ -32,9 +30,9 @@ class CityscapesDataset(BaseDataset):
         self.samples = [(p, i) for p in self.image_files for i in range(4)]
 
         # transform for train images and labels/instance
-        self.transform_image = transforms.Compose(
+        self.transform = transforms.Compose(
             [
-                self.rescale(scale),
+                self.rescale(scale, min_size=min_size),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=self.IMAGENET_MEAN,
@@ -49,7 +47,7 @@ class CityscapesDataset(BaseDataset):
 
         # read image
         image = Image.open(image_file).convert("RGB")
-        image = self.transform_image(image)
+        image = self.transform(image)
 
         # rotate image
         image = torch.rot90(image, k=label, dims=[-2, -1])
