@@ -132,3 +132,21 @@ class BaseDataset(data.Dataset):
         offset_x = size // 2 - resized_image.width // 2
         offset_y = size // 2 - resized_image.height // 2
         return resized_image, (offset_x, offset_y)
+
+
+def test():
+    # test rescale function
+    scale = 0.1
+    min_size = 33
+
+    image_size = (223, 146)
+    image = Image.new("RGB", image_size)
+    print(image.size)
+
+    rescale = BaseDataset.rescale(scale, min_size)
+    image_rescaled = rescale(image)
+    print(image_rescaled.size)
+
+
+if __name__ == "__main__":
+    test()

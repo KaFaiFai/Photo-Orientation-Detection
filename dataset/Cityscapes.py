@@ -17,7 +17,7 @@ from BaseDataset import BaseDataset
 
 
 class CityscapesDataset(BaseDataset):
-    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=33):
+    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=64):
         super().__init__(root, split, scale)
 
         self.image_dir = self.root_dir / "leftImg8bit" / split

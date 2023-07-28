@@ -19,14 +19,14 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
 LOAD_FROM = None
-DATASET = GeneralDataset
-DATA_ROOT = os.environ["GENERAL_DATASET"]
-EXP_FOLDER = "exp1"
+DATASET = ImagenetDataset
+DATA_ROOT = os.environ["IMAGENET_DATASET"]
+EXP_FOLDER = None
 
 
 def main():
@@ -39,12 +39,8 @@ def main():
     ###
 
     identity_collate = lambda batch: batch
-    train_loader = DataLoader(
-        dataset_train, BATCH_SIZE, shuffle=False, collate_fn=identity_collate
-    )
-    val_loader = DataLoader(
-        dataset_val, BATCH_SIZE, shuffle=False, collate_fn=identity_collate
-    )
+    train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=False, collate_fn=identity_collate)
+    val_loader = DataLoader(dataset_val, BATCH_SIZE, shuffle=False, collate_fn=identity_collate)
 
     print(f"Init model using {DEVICE=} ...")
     model = MobileNetV2(4).to(DEVICE)
@@ -96,10 +92,7 @@ def main():
 
         end_time = timeit.default_timer()
         train_time = end_time - start_time
-        print(
-            f"Train time: {train_time:.2f}s,"
-            f" {train_time/len(train_loader):.2f}s/batch"
-        )
+        print(f"Train time: {train_time:.2f}s," f" {train_time/len(train_loader):.2f}s/batch")
 
         print("")
 

@@ -16,7 +16,7 @@ from BaseDataset import BaseDataset
 
 
 class ImagenetDataset(BaseDataset):
-    def __init__(self, root: str | Path, split: str = "train", scale=1):
+    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=64):
         super().__init__(root, split, scale)
         if split == "test":
             raise ValueError(f"Imagenet does not support test set")
@@ -29,7 +29,7 @@ class ImagenetDataset(BaseDataset):
         # transform for train images and labels/instance
         self.transform = transforms.Compose(
             [
-                self.rescale(scale),
+                self.rescale(scale, min_size=min_size),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=self.IMAGENET_MEAN,
