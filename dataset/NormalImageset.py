@@ -17,7 +17,7 @@ from BaseDataset import BaseDataset
 
 class NormalImageDataset(BaseDataset):
     IMAGE_EXTENSION = (".jpg", ".jpeg", ".png")
-    min_size = 32
+    min_size = 33
 
     def __init__(self, root: str | Path, split: str = "train", scale=1):
         """

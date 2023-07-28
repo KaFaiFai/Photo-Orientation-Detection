@@ -29,9 +29,7 @@ class BaseDataset(data.Dataset):
         assert scale > 0, "scale of images must be > 0"
 
         if split not in {"train", "val", "test"}:
-            raise ValueError(
-                f"Expect split to be 'train', 'val' or 'test', got {split}"
-            )
+            raise ValueError(f"Expect split to be 'train', 'val' or 'test', got {split}")
 
     def __getitem__(self, index) -> tuple[torch.Tensor, int]:
         """
@@ -40,20 +38,21 @@ class BaseDataset(data.Dataset):
         raise NotImplementedError("Please implement this method")
 
     @classmethod
-    def rescale(cls, scale=1, min_size=32):
+    def rescale(cls, scale=1, min_size=1):
         """
-        return a function that rescale image tensor no smaller than min_size
+        return a function that rescales image tensor
+        Result image will have a max(height, width) >= min_size
         """
 
         def _rescale(image: Image.Image):
             width, height = image.size
-            new_width, new_height = int(width * scale), int(height * scale)
+            new_width, new_height = width * scale, height * scale
 
             # make image at least as large as min_size
-            min_side = min(new_width, new_height, min_size)
+            min_side = min(max(new_width, new_height), min_size)
             new_size = (
-                int(width * min_size // min_side),
-                int(height * min_size // min_side),
+                int(new_width * min_size // min_side),
+                int(new_height * min_size // min_side),
             )
 
             resized_image = image.resize(new_size)
@@ -62,9 +61,7 @@ class BaseDataset(data.Dataset):
         return _rescale
 
     @classmethod
-    def plot_image(
-        cls, image: torch.Tensor, num_rotation=0, save_to="image.png"
-    ) -> Image.Image:
+    def plot_image(cls, image: torch.Tensor, num_rotation=0, save_to="image.png") -> Image.Image:
         """
         Draw a rotated image and save it
         """
@@ -103,9 +100,7 @@ class BaseDataset(data.Dataset):
             # paste input image in upper half
             x, y = size * i, 0
             input_image = cls.plot_image(image, 0, save_to=None)
-            resized_image, (offset_x, offset_y) = cls._plot_image_in_square(
-                input_image, size
-            )
+            resized_image, (offset_x, offset_y) = cls._plot_image_in_square(input_image, size)
 
             paste_x = x + offset_x
             paste_y = y + offset_y
@@ -115,9 +110,7 @@ class BaseDataset(data.Dataset):
             y += size
             num_rotation = 4 - label
             rotated_image = cls.plot_image(image, num_rotation, save_to=None)
-            resized_image, (offset_x, offset_y) = cls._plot_image_in_square(
-                rotated_image, size
-            )
+            resized_image, (offset_x, offset_y) = cls._plot_image_in_square(rotated_image, size)
 
             paste_x = x + offset_x
             paste_y = y + offset_y

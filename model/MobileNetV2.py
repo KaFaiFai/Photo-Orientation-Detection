@@ -172,8 +172,8 @@ def test():
     y = net(torch.randn((batch_size, 3, 125, 250)).to(device))
     y = net(torch.randn((batch_size, 3, 320, 180)).to(device))
 
-    # the minimum input size is 33x33 if the batch size = 1
-    for image_size in ((33, 33), (32, 32)):
+    # the minimum input size is 33 if the batch size = 1
+    for image_size in ((33, 10), (32, 32)):
         try:
             y = net(torch.randn((1, 3, *image_size)).to(device))
             print(f"Model supports image size with {image_size}")
