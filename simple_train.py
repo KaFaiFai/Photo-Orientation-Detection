@@ -8,7 +8,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 
-from dataset import CityscapesDataset, ImagenetDataset, NormalImageDataset
+from dataset import CityscapesDataset, ImagenetDataset, GeneralDataset
 from model.MobileNetV2 import MobileNetV2
 from model.EfficientNet import EfficientNet
 from script.loop_dataset import train_loop, eval_loop
@@ -24,7 +24,7 @@ NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
 LOAD_FROM = None
-DATASET = NormalImageDataset
+DATASET = GeneralDataset
 DATA_ROOT = os.environ["NORMAL_IMAGE_DATASET"]
 EXP_FOLDER = "exp1"
 

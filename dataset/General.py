@@ -14,7 +14,7 @@ sys.path.append(str((Path(__file__) / "..").resolve()))
 from BaseDataset import BaseDataset
 
 
-class NormalImageDataset(BaseDataset):
+class GeneralDataset(BaseDataset):
     IMAGE_EXTENSION = (".jpg", ".jpeg", ".png")
     min_size = 33
 
@@ -87,8 +87,8 @@ def _test():
     root = "training_data/variable_size"
 
     # try loading all the data
-    dataset_train = NormalImageDataset(root, scale=0.4)
-    dataset_val = NormalImageDataset(root, split="val")
+    dataset_train = GeneralDataset(root, scale=0.4)
+    dataset_val = GeneralDataset(root, split="val")
     print(f"{len(dataset_train)=}| {len(dataset_val)=}")
 
     # pry the data format
@@ -97,9 +97,9 @@ def _test():
     print(image.shape, label)
 
     # try visualization
-    NormalImageDataset.plot_image(image, 0, save_to="image0.png")
+    GeneralDataset.plot_image(image, 0, save_to="image0.png")
     image2, label2 = dataset_train[1]
-    NormalImageDataset.plot_results([image, image2], [label, label2])
+    GeneralDataset.plot_results([image, image2], [label, label2])
 
 
 if __name__ == "__main__":
