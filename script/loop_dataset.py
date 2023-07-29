@@ -7,9 +7,7 @@ import timeit
 import numpy as np
 
 
-def _loop_dataset(
-    model, dataloader, criterion, device, optimizer=None, silent=False, return_samples=True, image_same_size=False
-):
+def _loop_dataset(model, dataloader, criterion, device, optimizer=None, silent=False, return_samples=True):
     """
     used for training loop by setting optimizer or evaluation loop
     """
@@ -27,39 +25,21 @@ def _loop_dataset(
     samples = ([], [], [])
     for batch_idx, data in enumerate(dataloader):
         batch_size = len(data)
-        if image_same_size:
-            # feed forward with multiple images of same size
-            image = [torch.Tensor(d[0]) for d in data]
-            image = torch.stack(image).to(device)
-            label = [d[1] for d in data]
-            label = torch.LongTensor(label).to(device)
 
-            output = model(image)
-            loss = criterion(output, label)
+        # feed forward with multiple images of same size
+        image = [d[0] for d in data]
+        image = torch.stack(image).to(device)
+        label = [d[1] for d in data]
+        label = torch.LongTensor(label).to(device)
 
-            # save records
-            all_truths += label.detach().cpu().tolist()
-            all_outputs.append(output.detach().cpu())
-            if return_samples and batch_idx == 0:
-                samples = (image.detach().cpu(), label.detach().cpu(), output.detach().cpu())
+        output = model(image)
+        loss = criterion(output, label)
 
-        else:
-            # feed forward with single image and accumulate gradients
-            for image, label in data:
-                # expect a single image (C, H, W) and integer label
-                image = image.to(device)
-                label = torch.LongTensor([label]).to(device)
-
-                output = model(image.unsqueeze(0))
-                loss = criterion(output, label)
-
-                # save records
-                all_truths.append(label.detach().cpu().tolist())
-                all_outputs.append(output.detach().cpu())
-                if return_samples and batch_idx == 0:
-                    samples[0].append(image.detach().cpu())
-                    samples[1].append(label.detach().cpu())
-                    samples[2].append(output.detach().cpu())
+        # save records
+        all_truths += label.detach().cpu().tolist()
+        all_outputs.append(output.detach().cpu())
+        if return_samples and batch_idx == 0:
+            samples = (image.detach().cpu(), label.detach().cpu(), output.detach().cpu())
 
         # backward
         if optimizer is not None:
@@ -67,7 +47,7 @@ def _loop_dataset(
             loss.backward()
             optimizer.step()
 
-        # total_loss += loss.item()
+        total_loss += loss.item()
         if batch_idx % 20 == 0 and not silent:
             print(
                 f"[Batch {batch_idx:4d}/{len(dataloader)}]"

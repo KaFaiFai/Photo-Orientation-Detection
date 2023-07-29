@@ -12,19 +12,21 @@ def variable_size_collate(batch):
     return batch
 
 
-def crop_collate(batch):
-    data = [item[0] for item in batch]
-    target = [item[1] for item in batch]
-    max_height = max([img.size(1) for img in image_batch])
-    max_width = max([img.size(2) for img in image_batch])
+def identity_collate(batch):
+    return batch
 
-    image_batch = [
-        # The needed padding is the difference between the
-        # max width/height and the image's actual width/height.
-        F.pad(img, [0, max_width - img.size(2), 0, max_height - img.size(1)])
-        for img in image_batch
-    ]
-    # return [data, target]
+
+def pad_collate(batch):
+    images = [item[0] for item in batch]
+    max_height = max([img.size(1) for img in images])
+    max_width = max([img.size(2) for img in images])
+
+    padded_images = [F.pad(img, [0, max_width - img.size(2), 0, max_height - img.size(1)]) for img in images]
+
+    targets = [item[1] for item in batch]
+
+    padded_batch = list(zip(padded_images, targets))
+    return padded_batch
 
 
 def plot_loss_graph(train_losses=None, val_losses=None, test_losses=None, save_to="loss.png"):
