@@ -11,7 +11,7 @@ from dataset import CityscapesDataset, ImagenetDataset, GeneralDataset
 from model.MobileNetV2 import MobileNetV2
 from model.EfficientNet import EfficientNet
 from script.loop_dataset import train_loop, eval_loop
-from script.util import plot_loss_graph, pad_collate, identity_collate
+from script.util import plot_loss_graph, pad_collate
 from script.metrics import ClassificationMetrics
 
 # Hyperparameters etc.
