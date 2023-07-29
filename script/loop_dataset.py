@@ -71,7 +71,7 @@ def _loop_dataset(
         if batch_idx % 20 == 0 and not silent:
             print(
                 f"[Batch {batch_idx:4d}/{len(dataloader)}]"
-                f"| Loss: {loss.item()/batch_size:.4f}"
+                f" Loss: {loss.item()/batch_size:.4f}"
                 f"| Memory: {torch.cuda.memory_reserved(0)/1024**3:.4f}GB"
             )
 

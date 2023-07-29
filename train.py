@@ -21,11 +21,11 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 4
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
-IMAGE_SCALE = 0.2
+IMAGE_SCALE = 0.1
 LOAD_FROM = None
-DATASET = CityscapesDataset
-DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
-EXP_FOLDER = "exp1"
+DATASET = ImagenetDataset
+DATA_ROOT = os.environ["IMAGENET_DATASET"]
+EXP_FOLDER = "Imagenet_1e-1"
 
 
 def main():
@@ -33,8 +33,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(50))
-    dataset_val = Subset(dataset_val, np.arange(20))
+    # dataset_train = Subset(dataset_train, np.arange(500))
+    # dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
     identity_collate = lambda batch: batch
@@ -63,13 +63,13 @@ def main():
         val_loss, val_truths, val_outputs, val_time, val_samples = val_info
         val_losses.append(val_loss)
         val_metrics = ClassificationMetrics(val_truths, val_outputs)
-        
+
         print(f"Train loss: {train_loss:.4f} | Val loss: {val_loss:.4f}")
         print("--- Validation report ---")
         val_metrics.print_report()
 
         # save model, some examples and graphs to a folder
-        if epoch % 5 == 0:
+        if epoch % 1 == 0:
             print("saving snapshot")
             epoch_folder = Path("snapshot") / EXP_FOLDER / f"e{epoch:03d}"
             epoch_folder.mkdir(parents=True, exist_ok=True)

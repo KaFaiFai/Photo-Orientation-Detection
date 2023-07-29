@@ -16,7 +16,7 @@ from BaseDataset import BaseDataset
 
 
 class ImagenetDataset(BaseDataset):
-    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=64):
+    def __init__(self, root: str | Path, split: str = "train", scale=1, min_size=40):
         super().__init__(root, split, scale)
         if split == "test":
             raise ValueError(f"Imagenet does not support test set")
