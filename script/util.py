@@ -1,10 +1,11 @@
 import torch
+from torch import Tensor
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def variable_size_collate(batch):
+def DEPvariable_size_collate(batch):
     data = [item[0] for item in batch]
     target = [item[1] for item in batch]
     # target = torch.LongTensor(target)
@@ -12,16 +13,24 @@ def variable_size_collate(batch):
     return batch
 
 
-def identity_collate(batch):
+def DEPidentity_collate(batch):
     return batch
 
 
 def pad_collate(batch):
-    images = [item[0] for item in batch]
-    max_height = max([img.size(1) for img in images])
-    max_width = max([img.size(2) for img in images])
+    images: list[Tensor] = [item[0] for item in batch]
+    max_height = max([image.size(1) for image in images])
+    max_width = max([image.size(2) for image in images])
 
-    padded_images = [F.pad(img, [0, max_width - img.size(2), 0, max_height - img.size(1)]) for img in images]
+    padded_images = []
+    for image in images:
+        # center image with padding
+        padding_left = (max_width - image.shape[2]) // 2
+        padding_right = max_width - image.shape[2] - padding_left
+        padding_top = (max_height - image.shape[1]) // 2
+        padding_bottom = max_height - image.shape[1] - padding_top
+
+        padded_images.append(F.pad(image, (padding_left, padding_right, padding_top, padding_bottom)))
 
     targets = [item[1] for item in batch]
 
