@@ -48,7 +48,7 @@ def _loop_dataset(model, dataloader, criterion, device, optimizer=None, silent=F
             optimizer.step()
 
         total_loss += loss.item()
-        if batch_idx % 20 == 0 and not silent:
+        if batch_idx % 5 == 0 and not silent:
             print(
                 f"[Batch {batch_idx:4d}/{len(dataloader)}]"
                 f" Loss: {loss.item()/batch_size:.4f}"

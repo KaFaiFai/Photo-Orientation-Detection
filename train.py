@@ -34,8 +34,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    # dataset_train = Subset(dataset_train, np.arange(250))
-    # dataset_val = Subset(dataset_val, np.arange(20))
+    dataset_train = Subset(dataset_train, np.arange(1000))
+    dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
     train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=True, collate_fn=pad_collate)

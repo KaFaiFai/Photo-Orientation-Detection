@@ -9,6 +9,7 @@ Classify input photos into four classes: 0◦, 90◦, 180◦, or 270◦, and rot
 1. ~~Add accuracy metrics~~ :white_check_mark:
 1. ~~Add save model function~~ :white_check_mark:
 1. ~~reduce gpu memory usage~~ :white_check_mark:
+1. Fix pad_collate to be centre
 1. Add evaluate model script
 1. Objectify dataset looper
 1. implement EfficientNet https://paperswithcode.com/paper/efficientnet-rethinking-model-scaling-for
