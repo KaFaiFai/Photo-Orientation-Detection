@@ -1,3 +1,4 @@
+import timeit
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -18,7 +19,7 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 1
+BATCH_SIZE = 8
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
@@ -33,8 +34,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(250))
-    dataset_val = Subset(dataset_val, np.arange(20))
+    # dataset_train = Subset(dataset_train, np.arange(250))
+    # dataset_val = Subset(dataset_val, np.arange(20))
     ###
 
     train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=True, collate_fn=pad_collate)
@@ -62,7 +63,6 @@ def main():
         val_loss, val_truths, val_outputs, val_time, val_samples = val_info
         val_losses.append(val_loss)
         val_metrics = ClassificationMetrics(val_truths, val_outputs)
-
         print(f"Train loss: {train_loss:.4f} | Val loss: {val_loss:.4f}")
         print("--- Validation report ---")
         val_metrics.print_report()

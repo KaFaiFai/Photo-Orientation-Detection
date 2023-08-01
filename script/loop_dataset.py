@@ -11,12 +11,12 @@ def _loop_dataset(model, dataloader, criterion, device, optimizer=None, silent=F
     """
     used for training loop by setting optimizer or evaluation loop
     """
-    start_time = timeit.default_timer()
-
     if optimizer is None:
         model.eval()
     else:
         model.train()
+
+    start_time = timeit.default_timer()
 
     total_loss = 0
     all_truths = []
