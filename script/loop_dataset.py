@@ -7,7 +7,16 @@ import timeit
 import numpy as np
 
 
-def _loop_dataset(model, dataloader, criterion, device, optimizer=None, silent=False, return_samples=True):
+def _loop_dataset(
+    model,
+    dataloader,
+    criterion,
+    device,
+    optimizer=None,
+    silent=False,
+    return_samples=True,
+    max_batch=None,
+):
     """
     used for training loop by setting optimizer or evaluation loop
     """
@@ -24,6 +33,9 @@ def _loop_dataset(model, dataloader, criterion, device, optimizer=None, silent=F
 
     samples = ([], [], [])
     for batch_idx, data in enumerate(dataloader):
+        if max_batch is not None and batch_idx > max_batch:
+            break
+
         batch_size = len(data)
 
         # feed forward with multiple images of same size
@@ -68,8 +80,8 @@ def _loop_dataset(model, dataloader, criterion, device, optimizer=None, silent=F
 
 
 def train_loop(model, dataloader, criterion, device, optimizer):
-    return _loop_dataset(model, dataloader, criterion, device, optimizer)
+    return _loop_dataset(model, dataloader, criterion, device, optimizer, max_batch=1000)
 
 
 def eval_loop(model, dataloader, criterion, device):
-    return _loop_dataset(model, dataloader, criterion, device, silent=True)
+    return _loop_dataset(model, dataloader, criterion, device, silent=True, max_batch=200)
