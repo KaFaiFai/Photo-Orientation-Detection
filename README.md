@@ -11,6 +11,7 @@ Classify input photos into four classes: 0◦, 90◦, 180◦, or 270◦, and rot
 1. ~~reduce gpu memory usage~~ :white_check_mark:
 1. Implement EfficientNet https://paperswithcode.com/paper/efficientnet-rethinking-model-scaling-for
 1. Implement MobileVit https://paperswithcode.com/paper/mobilevit-light-weight-general-purpose-and
+1. Support training with pretrained model for MobileNetV2
 1. Add evaluate model script
 1. Add config file
 1. Objectify dataset looper

@@ -19,13 +19,13 @@ from script.metrics import ClassificationMetrics
 load_dotenv()
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 3
+BATCH_SIZE = 16
 NUM_EPOCHS = 1000
 NUM_WORKERS = 2
 IMAGE_SCALE = 0.1
 LOAD_FROM = None
-DATASET = CityscapesDataset
-DATA_ROOT = os.environ["CITYSCAPES_DATASET"]
+DATASET = ImagenetDataset
+DATA_ROOT = os.environ["IMAGENET_DATASET"]
 EXP_FOLDER = "Imagenet_1e-1"
 
 
@@ -34,8 +34,8 @@ def main():
     dataset_train = DATASET(DATA_ROOT, split="train", scale=IMAGE_SCALE)
     dataset_val = DATASET(DATA_ROOT, split="val", scale=IMAGE_SCALE)
     # subset to test if it overfits, comment this for full scale training
-    dataset_train = Subset(dataset_train, np.arange(10))
-    dataset_val = Subset(dataset_val, np.arange(4))
+    # dataset_train = Subset(dataset_train, np.arange(100))
+    # dataset_val = Subset(dataset_val, np.arange(40))
     ###
 
     train_loader = DataLoader(dataset_train, BATCH_SIZE, shuffle=True, collate_fn=pad_collate)
@@ -78,7 +78,7 @@ def main():
             # save examples
             images, _, outputs = val_samples
             predictions = [torch.argmax(output).item() for output in outputs]
-            CityscapesDataset.plot_results(images, predictions, save_to=epoch_folder / "output.png")
+            DATASET.plot_results(images, predictions, save_to=epoch_folder / "output.png")
 
             plot_loss_graph(train_losses, val_losses, save_to=epoch_folder / "loss.png")
 
