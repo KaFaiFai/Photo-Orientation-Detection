@@ -9,6 +9,7 @@ Classify input photos into four classes: 0◦, 90◦, 180◦, or 270◦, and rot
 1. ~~Add accuracy metrics~~ :white_check_mark:
 1. ~~Add save model function~~ :white_check_mark:
 1. ~~reduce gpu memory usage~~ :white_check_mark:
+1. Add max_size for image data
 1. Implement EfficientNet https://paperswithcode.com/paper/efficientnet-rethinking-model-scaling-for
 1. Implement MobileVit https://paperswithcode.com/paper/mobilevit-light-weight-general-purpose-and
 1. Support training with pretrained model for MobileNetV2
